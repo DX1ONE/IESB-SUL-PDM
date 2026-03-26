@@ -2,10 +2,9 @@ import {Text} from 'react-native'
 
 function GerenciarDespesa(){
 
-    return(
+    return (
         <Text>GerenciarDespesa</Text>
     )
-
 }
 
-export default GerenciarDespesa
+export GerenciarDespesa
