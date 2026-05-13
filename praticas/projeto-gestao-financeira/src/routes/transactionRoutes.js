@@ -29,4 +29,16 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+// Excluir transação 
+router.delete("/:id", async (req, res, next) => {
+  try {
+    await prisma.transaction.delete({
+      where: { id: req.params.id },
+    });
+    res.status(204).send(); // 204 No Content
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

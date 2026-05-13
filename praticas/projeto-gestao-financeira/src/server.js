@@ -12,6 +12,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Rota de Health-check 
+app.get("/", (req, res) => {
+  res.json({ ok: true, name: "gestao-financeira-api" });
+});
+
 // Registrando as rotas
 app.use("/categories", categoryRoutes);
 app.use("/transactions", transactionRoutes);
