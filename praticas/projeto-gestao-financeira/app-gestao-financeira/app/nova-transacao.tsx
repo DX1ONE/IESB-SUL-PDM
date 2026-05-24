@@ -81,6 +81,7 @@ export default function NewTransactionScreen() {
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
+      console.error('Erro ao salvar transação:', error);
       Alert.alert('Erro', 'Não foi possível salvar a transação.');
     } finally {
       setLoading(false);

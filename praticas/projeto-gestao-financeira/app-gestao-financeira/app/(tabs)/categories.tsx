@@ -31,7 +31,7 @@ export default function CategoriesScreen() {
       });
       setDisplayName('');
       Alert.alert('Sucesso', 'Categoria criada com sucesso!');
-    } catch (err: any) {
+    } catch {
       Alert.alert('Erro', 'Não foi possível criar a categoria. Certifique-se de que o nome é exclusivo.');
     }
   };
@@ -50,7 +50,7 @@ export default function CategoriesScreen() {
         onPress: async () => {
           try {
             await removeCategory(item.id);
-          } catch (err) {
+          } catch {
             Alert.alert('Erro', 'Não foi possível excluir. Verifique se há transações vinculadas a ela.');
           }
         }

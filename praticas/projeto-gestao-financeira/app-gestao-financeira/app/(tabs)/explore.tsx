@@ -37,7 +37,7 @@ export default function TabTwoScreen() {
     if (isFocused && refresh) {
       refresh();
     }
-  }, [isFocused]);
+  }, [isFocused, refresh]);
 
   useEffect(() => {
     setSelectedCategory(null);
