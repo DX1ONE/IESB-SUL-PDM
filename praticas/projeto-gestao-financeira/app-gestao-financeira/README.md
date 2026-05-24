@@ -29,7 +29,7 @@ O servidor gerencia o banco de dados e as regras de negócio, rodando nativament
    npm install
    ```
 
-3. Se o projeto utilizar o banco de dados com **Prisma**, aplique as tabelas rodando:
+3. Como o projeto utiliza o banco de dados com **Prisma**, aplique as tabelas rodando:
    ```bash
    npx prisma migrate dev
    ```
