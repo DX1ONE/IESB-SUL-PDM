@@ -36,7 +36,7 @@ O servidor gerencia o banco de dados e as regras de negócio, rodando nativament
 
 4. Inicie o servidor da API:
    ```bash
-   npm run dev
+   node src/server.js
    ```
 
 > 💡 **Nota:** O servidor estará disponível e escutando requisições no endereço: `http://localhost:3000`
@@ -58,7 +58,7 @@ O aplicativo foi desenvolvido utilizando Expo e consome os dados fornecidos pelo
 
 3. Execute o comando para iniciar o empacotador do Expo diretamente no emulador Android:
    ```bash
-   npm run android
+   npx expo start -c --localhost
    ```
 
 > 💡 **Dica de Execução:** Se o emulador Android já estiver aberto na sua máquina, o Expo fará a instalação e abrirá o aplicativo automaticamente nele. Caso prefira testar direto no seu celular físico, basta rodar o comando `npx expo start`, ler o QR Code gerado na tela utilizando o aplicativo **Expo Go** e garantir que o computador e o celular estejam conectados na mesma rede Wi-Fi.
