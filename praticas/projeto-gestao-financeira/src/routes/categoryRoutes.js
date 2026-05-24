@@ -9,7 +9,7 @@ const router = Router();
 router.get("/", async (req, res, next) => {
   try {
     const categories = await prisma.category.findMany();
-    res.json(categories);
+    return res.json(categories);
   } catch (error) {
     next(error);
   }
@@ -21,7 +21,7 @@ router.post("/", async (req, res, next) => {
     // O Zod valida os dados antes de salvar no banco
     const data = createCategorySchema.parse(req.body);
     const category = await prisma.category.create({ data });
-    res.status(201).json(category);
+    return res.status(201).json(category);
   } catch (error) {
     next(error);
   }
@@ -35,7 +35,7 @@ router.put("/:id", async (req, res, next) => {
       where: { id: req.params.id },
       data,
     });
-    res.json(category);
+    return res.json(category);
   } catch (error) {
     next(error);
   }
@@ -43,25 +43,28 @@ router.put("/:id", async (req, res, next) => {
 
 // Excluir categoria 
 router.delete("/:id", async (req, res, next) => {
+  const { id } = req.params;
   try {
-    // Busca a categoria primeiro para ver se é padrão
-    const category = await prisma.category.findUnique({
-      where: { id: req.params.id },
-    });
+    // 1. Busca a categoria no banco para verificar se ela existe
+    const category = await prisma.category.findUnique({ where: { id } });
 
     if (!category) {
       return res.status(404).json({ error: "Categoria não encontrada" });
     }
+
+    // 2. Bloqueia a exclusão das categorias padrão do sistema
+    // Adicionamos os nomes prováveis em inglês e português para cobrir como o seed foi feito
+    const defaultCategories = ["income", "expense", "alimentacao", "salario", "lazer", "saude", "transporte"];
     
-    if (category.isDefault) {
+    if (
+      defaultCategories.includes(category.name?.toLowerCase()) || 
+      category.isDefault === true // Caso seu schema possua uma propriedade booleana de controle
+    ) { 
       return res.status(400).json({ error: "Categorias padrão não podem ser excluídas" });
     }
 
-    await prisma.category.delete({
-      where: { id: req.params.id },
-    });
-    
-    res.status(204).send(); // 204 No Content
+    await prisma.category.delete({ where: { id } });
+    return res.status(204).send(); // Resposta 204 No Content conforme exigido
   } catch (error) {
     next(error);
   }
