@@ -2,64 +2,111 @@
 
 Este projeto consiste em uma aplicação completa de gestão financeira com arquitetura dividida entre um servidor de API (**Back-end**) e um aplicativo móvel (**Front-end**) desenvolvido em **React Native** com **Expo**.
 
-## 📋 Pré-requisitos
+🛠️ Pré-requisitos Obrigatórios
+Antes de iniciar, certifique-se de possuir instalado em sua máquina de avaliação:
 
-Antes de iniciar, certifique-se de ter instalado em sua máquina:
-
-* **Node.js** (Versão LTS recomendada)
-* Gerenciador de pacotes **npm** ou **yarn**
-* Um emulador Android configurado (**Android Studio**) ou o aplicativo **Expo Go** instalado no seu dispositivo físico.
-
----
-
-## 🚀 Como Executar o Projeto
-
-Para rodar a aplicação, você precisará utilizar dois terminais distintos: um para o servidor e outro para o aplicativo.
-
-### 💻 Terminal 1: Servidor API (Back-end)
-O servidor gerencia o banco de dados e as regras de negócio, rodando nativamente na porta `3000`.
-
-1. Abra o primeiro terminal e entre na pasta do back-end:
-   ```bash
-   cd projeto-gestao-financeira
-   ```
-
-2. Instale as dependências do projeto:
-   ```bash
-   npm install
-   ```
-
-3. Como o projeto utiliza o banco de dados com **Prisma**, aplique as tabelas rodando:
-   ```bash
-   npx prisma migrate dev
-   ```
-
-4. Inicie o servidor da API:
-   ```bash
-   node src/server.js
-   ```
-
-> 💡 **Nota:** O servidor estará disponível e escutando requisições no endereço: `http://localhost:3000`
+* **Node.js** (Versão 18 ou superior recomendada)
+* **MySQL Server** ativo localmente (Porta padrão 3306)
+* **MySQL Workbench** (ou qualquer cliente SQL de sua preferência)
+* **Expo Go** instalado no smartphone ou um emulador configurado
 
 ---
 
-### 📱 Terminal 2: Aplicativo Mobile (Front-end Android)
-O aplicativo foi desenvolvido utilizando Expo e consome os dados fornecidos pelo Terminal 1.
+🖥️ 1. Configuração do Back-end (projeto-gestao-financeira)
+Siga os passos abaixo sequencialmente para subir a API e popular a base de dados.
 
-1. Abra um segundo terminal à parte e entre na pasta do aplicativo móvel:
-   ```bash
-   cd app-gestao-financeira
-   ```
+### Passo 1.1: Instalar as Dependências
+Abra o terminal dentro do diretório do back-end e execute:
 
-2. Instale as dependências do aplicativo:
-   ```bash
-   npm install
-   ```
+```bash
+cd projeto-gestao-financeira
+npm install
+```
 
-3. Execute o comando para iniciar o empacotador do Expo diretamente no emulador Android:
-   ```bash
-   npx expo start -c --localhost
-   ```
+### Passo 1.2: Criar o Banco de Dados no MySQL Workbench
+Abra o MySQL Workbench, conecte-se à sua instância local e execute a seguinte Query SQL para criar a estrutura do banco com suporte completo a caracteres especiais e emojis:
+
+```sql
+CREATE DATABASE gestao_financeira
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
+
+### Passo 1.3: Configurar as Variáveis de Ambiente (.env)
+Na raiz da pasta do back-end, crie um arquivo chamado `.env` baseado no modelo disponível em `.env.example`:
+
+```bash
+# Copie o conteúdo ou crie o arquivo manualmente na raiz do back-end
+# Ajuste o "root" e a "sua_senha" para corresponder às credenciais do seu MySQL local
+DATABASE_URL="mysql://root:iesb@localhost:3306/gestao_financeira"
+PORT=3000
+```
+
+### Passo 1.4: Executar as Migrations do Prisma
+Para ler o arquivo `schema.prisma` e gerar automaticamente todas as tabelas estruturadas (`transaction` e `category`) dentro do MySQL criado no Workbench, execute:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### Passo 1.5: Executar o Banco de Dados Seed (Popular Categorias)
+Este sistema implementa uma regra de negócio estrita onde existem categorias padrão protegidas do sistema que não podem ser deletadas pela API. Para inserir essas categorias nativas junto com seus emojis correspondentes na base, execute o comando configurado em nosso script:
+
+```bash
+npm run prisma:seed
+```
+* **Mensagem esperada no terminal:** `Seed concluído.`
+
+### Passo 1.6: Iniciar o Servidor API
+Agora que o banco está estruturado e populado, inicie o servidor de desenvolvimento:
+
+```bash
+npm run dev
+```
+* **O servidor estará ativo em:** `http://localhost:3000`
+* **Nota:** Deixe este terminal aberto e rodando em segundo plano.
+
+---
+
+📱 2. Configuração do Front-end (app-gestao-financeira)
+Com a API rodando em segundo plano, abra um segundo terminal para configurar a aplicação móvel.
+
+### Passo 2.1: Instalar as Dependências
+Navegue até o diretório do front-end e instale os pacotes necessários:
+
+```bash
+cd .\praticas\projeto-gestao-financeira\app-gestao-financeira\
+npm install
+```
+
+### Passo 2.2(opcional): Configurar as Variáveis de Ambiente do Expo
+Crie um arquivo `.env` na raiz da pasta do front-end (app-gestao-financeira) para mapear o endpoint de comunicação com a API:
+
+```env
+EXPO_PUBLIC_API_URL=http://localhost:3000
+```
+*⚠️ **Nota:** Caso esteja testando em um dispositivo físico Android ou iOS conectado via Wi-Fi, substitua `localhost` pelo IP local de sua máquina de desenvolvimento (ex: `http://192.168.x.x:3000`).*
+
+### Passo 2.3: Iniciar o Aplicativo Limpando o Cache (Recomendado)
+Para garantir que o Metro Bundler compile o app sem reter estados de compilações anteriores, inicie limpando o cache nativo:
+
+```bash
+npx expo start -c 
+
+ou
+
+npx expo start -c --localhost
+```
+* Pressione `a` para abrir no emulador Android ou leia o QR Code gerado utilizando a câmera do dispositivo físico através do app **Expo Go**.
+
+---
+
+💡 Recursos Implementados & Validações Avaliadas
+
+* **Arquitetura Baseada em Contexto Global:** Gerenciamento de estado de dados reativo via `MoneyContext.tsx`, garantindo sincronização e atualização de telas em tempo real (Gráficos, Listagens e Criação de Transações).
+* **Segurança e Proteção no Back-end:** O arquivo `categoryRoutes.js` possui um middleware rígido que impede a remoção inadvertida de categorias nativas (`isDefault: true`). Qualquer tentativa gera um retorno HTTP 400 Bad Request.
+* **Validação de Formulários com Zod:** Ambas as criações de categorias e transações passam por validação sintática estrita no back-end antes de atingirem o banco de dados.
+* **Persistência Relacional Correta:** A tabela de movimentações possui integridade referencial ligada diretamente aos IDs gerados de forma única na tabela de categorias (`categoryId`).
 
 > 💡 **Dica de Execução:** Se o emulador Android já estiver aberto na sua máquina, o Expo fará a instalação e abrirá o aplicativo automaticamente nele. Caso prefira testar direto no seu celular físico, basta rodar o comando `npx expo start`, ler o QR Code gerado na tela utilizando o aplicativo **Expo Go** e garantir que o computador e o celular estejam conectados na mesma rede Wi-Fi.
 
@@ -69,7 +116,7 @@ O aplicativo foi desenvolvido utilizando Expo e consome os dados fornecidos pelo
 
 Para facilitar a correção e a avaliação das funcionalidades de *Drilldown* e dos gráficos da aplicação, utilize os seguintes dados cadastrados na tela de login:
 
-* **Usuário:** Qualquer nome de sua preferência
+* **Usuário:** O Seu Nome
 * **Senha:** `1234`
 
 --------------------------------------------------------------------------------------------------------------------------------------   

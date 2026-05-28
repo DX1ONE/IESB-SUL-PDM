@@ -1,3 +1,5 @@
+### !!! README.md para iniciar o ambiente está dentro da pasta app-gestao-financeira. !!!
+
 # 📱 Programação para Dispositivos Móveis (React Native)
 Repositório base destinado às aulas teóricas e às atividades práticas da disciplina. Ao longo do semestre, utilizaremos este ambiente para construir, passo a passo, um **Aplicativo de Lista de Tarefas (To-Do List)**.
 

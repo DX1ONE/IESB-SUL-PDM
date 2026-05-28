@@ -1,13 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import api from '../services/api';
-
-interface Category {
-  id: string;
-  displayName: string;
-  icon?: string; // 💡 Adicionado caso sua API traga os emojis das categorias
-}
+import { MoneyContext } from '../contexts/MoneyContext';
 
 // 🎨 CORE DA PALETA TECH DARK MODE
 const TECH_THEME = {
@@ -20,9 +14,13 @@ const TECH_THEME = {
 };
 
 export default function NewTransactionScreen() {
+  // 🚀 Trocamos api e refresh pela função nativa do Contexto!
+  // Contexto pode estar tipado como unknown dependendo da definição do provider.
+  // Faça um cast seguro aqui para evitar erro de compilação.
+  const { categories, addTransaction } = useContext(MoneyContext) as any;
+  
   const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -32,21 +30,10 @@ export default function NewTransactionScreen() {
 
   const applyDateMask = (val: string) => {
     const cleanValue = val.replace(/\D/g, "");
-    
-    if (cleanValue.length <= 2) {
-      return cleanValue;
-    }
-    if (cleanValue.length <= 4) {
-      return `${cleanValue.slice(0, 2)}/${cleanValue.slice(2)}`;
-    }
+    if (cleanValue.length <= 2) return cleanValue;
+    if (cleanValue.length <= 4) return `${cleanValue.slice(0, 2)}/${cleanValue.slice(2)}`;
     return `${cleanValue.slice(0, 2)}/${cleanValue.slice(2, 4)}/${cleanValue.slice(4, 8)}`;
   };
-
-  useEffect(() => {
-    api.get('/categories')
-      .then((res: { data: Category[] }) => setCategories(res.data))
-      .catch((err: unknown) => console.error("Erro ao carregar categorias no app:", err));
-  }, []);
 
   const handleSave = async () => {
     if (!description || !value || !selectedCategory || !date) {
@@ -61,16 +48,16 @@ export default function NewTransactionScreen() {
 
     const [dia, mes, ano] = date.split('/').map(Number);
     if (dia < 1 || dia > 31 || mes < 1 || mes > 12 || ano < 2000) {
-      Alert.alert("Data Inválida", "Verifique se o dia, o mês e o ano estão corretos.");
+      Alert.alert("Data Inválida", "Verifique se a data está correta.");
       return;
     }
 
     try {
       setLoading(true);
-      
       const dataFormatada = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
 
-      await api.post('/transactions', {
+      // 🚀 Usando a função do Contexto. Ela já cuida do banco e de atualizar o gráfico!
+      await addTransaction({
         description,
         value: parseFloat(value),
         date: dataFormatada,
@@ -90,38 +77,15 @@ export default function NewTransactionScreen() {
 
   return (
     <View style={styles.container}>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Descrição (Ex: Salário, Almoço, Luz...)"
-        placeholderTextColor={TECH_THEME.gray}
-        value={description}
-        onChangeText={setDescription}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Valor R$ (Use negativo para despesas)"
-        placeholderTextColor={TECH_THEME.gray}
-        keyboardType="numeric"
-        value={value}
-        onChangeText={setValue}
-      />
-
+      <TextInput style={styles.input} placeholder="Descrição..." placeholderTextColor={TECH_THEME.gray} value={description} onChangeText={setDescription} />
+      <TextInput style={styles.input} placeholder="Valor R$ (Use negativo para despesas)" placeholderTextColor={TECH_THEME.gray} keyboardType="numeric" value={value} onChangeText={setValue} />
+      
       <Text style={styles.label}>Data (DD/MM/AAAA)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex: 25/12/2026"
-        placeholderTextColor={TECH_THEME.gray}
-        value={date}
-        onChangeText={(text) => setDate(applyDateMask(text))}
-        keyboardType="numeric"
-        maxLength={10} 
-      />
+      <TextInput style={styles.input} placeholder="Ex: 25/12/2026" placeholderTextColor={TECH_THEME.gray} value={date} onChangeText={(text) => setDate(applyDateMask(text))} keyboardType="numeric" maxLength={10} />
 
       <Text style={styles.label}>Selecione a Categoria:</Text>
       <View style={styles.categoryContainer}>
-        {categories.map((cat) => (
+        {categories.map((cat: any) => (
           <TouchableOpacity
             key={cat.id}
             style={[styles.categoryBtn, selectedCategory === cat.id && styles.categoryBtnSelected]}
@@ -135,18 +99,14 @@ export default function NewTransactionScreen() {
       </View>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color={TECH_THEME.bg} />
-        ) : (
-          <Text style={styles.saveButtonText}>Salvar Registro</Text>
-        )}
+        {loading ? <ActivityIndicator color={TECH_THEME.bg} /> : <Text style={styles.saveButtonText}>Salvar Registro</Text>}
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: TECH_THEME.bg, padding: 20, paddingTop: 40 }, // Fundo Escuro Puro
+  container: { flex: 1, backgroundColor: TECH_THEME.bg, padding: 20, paddingTop: 40 },
   input: { backgroundColor: TECH_THEME.cardBg, padding: 14, borderRadius: 8, fontSize: 16, marginBottom: 16, color: TECH_THEME.text, borderWidth: 1, borderColor: '#45A29E22' },
   label: { fontSize: 16, fontWeight: '600', color: TECH_THEME.gray, marginBottom: 10 },
   categoryContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 30, gap: 4 },
@@ -154,6 +114,6 @@ const styles = StyleSheet.create({
   categoryBtnSelected: { backgroundColor: '#45A29E33', borderColor: TECH_THEME.neon },
   categoryBtnText: { color: TECH_THEME.gray, fontSize: 14, fontWeight: '500' },
   categoryBtnTextSelected: { color: TECH_THEME.neon, fontWeight: '700' },
-  saveButton: { backgroundColor: TECH_THEME.neon, padding: 16, borderRadius: 8, alignItems: 'center' }, // Botão principal em Ciano Neon
+  saveButton: { backgroundColor: TECH_THEME.neon, padding: 16, borderRadius: 8, alignItems: 'center' },
   saveButtonText: { color: TECH_THEME.bg, fontSize: 16, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5 }
 });
